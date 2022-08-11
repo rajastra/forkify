@@ -559,6 +559,7 @@ const controlRecipe = async function() {
         (0, _recipeViewJsDefault.default).renderSpinner();
         // update results view to mark selected search result
         (0, _resultsViewJsDefault.default).update(_modelJs.getSearchResultsPage());
+        // update boorkmarks view
         (0, _bookmarksViewJsDefault.default).update(_modelJs.state.bookmark);
         // loading recipe
         await _modelJs.loadRecipe(id);
@@ -608,7 +609,11 @@ const controlAddBookmark = function() {
     // render bookmark
     (0, _bookmarksViewJsDefault.default).render(_modelJs.state.bookmark);
 };
+const controlBookmark = function() {
+    (0, _bookmarksViewJsDefault.default).render(_modelJs.state.bookmark);
+};
 const init = function() {
+    (0, _bookmarksViewJsDefault.default).addHandlerRender(controlBookmark);
     (0, _recipeViewJsDefault.default).addHandlerRender(controlRecipe);
     (0, _recipeViewJsDefault.default).addHandlerUpdateServings(controlServings);
     (0, _recipeViewJsDefault.default).addHandlerAddBookmark(controlAddBookmark);
@@ -1785,17 +1790,29 @@ const updateServings = function(newServings) {
     });
     state.recipe.servings = newServings;
 };
+const persistBookmarks = function() {
+    localStorage.setItem("bookmarks", JSON.stringify(state.bookmark));
+};
 const addBookmark = function(recipe) {
     // add bookmark
     state.bookmark.push(recipe);
     // Mark current recipe as bookmark
     if (recipe.id === state.recipe.id) state.recipe.bookmarked = true;
+    // persist bookmarks
+    persistBookmarks();
 };
 const deleteBookmark = function(id) {
     const index = state.bookmark.findIndex((b)=>b.id === id);
     state.bookmark.splice(index, 1);
     if (state.recipe.id === id) state.recipe.bookmarked = false;
+    // persist bookmarks
+    persistBookmarks();
 };
+const init = function() {
+    const storage = localStorage.getItem("bookmarks");
+    if (storage) state.bookmark = JSON.parse(storage);
+};
+init();
 
 },{"regenerator-runtime":"dXNgZ","./config.js":"k5Hzs","./helper.js":"lVRAz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"dXNgZ":[function(require,module,exports) {
 /**
@@ -3074,6 +3091,9 @@ class BookmarksView extends (0, _viewJsDefault.default) {
     _parentElement = document.querySelector(".bookmarks__list");
     _errorMessage = "No bookmarks yet. Find a nice recipe and bookmark it :)";
     _message = ``;
+    addHandlerRender(handler) {
+        window.addEventListener("load", handler);
+    }
     _generateMarkup() {
         return this._data.map((result)=>(0, _previewViewJsDefault.default).render(result, false)).join("");
     }
